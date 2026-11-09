@@ -4,6 +4,7 @@ import "dotenv/config";
 
 import authRouter from "./routes/authRouter";
 import activityRouter from "./routes/activityRouter";
+import tasksRouter from "./routes/tasksRouter";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(express.json());
 
 app.use(authRouter);
 app.use(activityRouter);
+app.use(tasksRouter);
 
 const PORT = Number(process.env.PORT) || 3333;
 
