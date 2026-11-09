@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 
 import authRouter from "./routes/authRouter";
+import activityRouter from "./routes/activityRouter";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(
 app.use(express.json());
 
 app.use(authRouter);
+app.use(activityRouter);
 
 const PORT = Number(process.env.PORT) || 3333;
 
