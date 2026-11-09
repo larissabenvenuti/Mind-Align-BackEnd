@@ -7,6 +7,7 @@ import activityRouter from "./routes/activityRouter";
 import tasksRouter from "./routes/tasksRouter";
 import habitsRouter from "./routes/habitsRouter";
 import calendarRouter from "./routes/calendarRouter";
+import notesRouter from "./routes/notesRouter";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(activityRouter);
 app.use(tasksRouter);
 app.use(habitsRouter);
 app.use(calendarRouter);
+app.use(notesRouter);
 
 const PORT = Number(process.env.PORT) || 3333;
 
