@@ -9,6 +9,8 @@ import habitsRouter from "./routes/habitsRouter";
 import calendarRouter from "./routes/calendarRouter";
 import notesRouter from "./routes/notesRouter";
 import userRouter from "./routes/userRouter";
+import notificationRouter from "./routes/notificationRouter";
+import { startNotificationScheduler } from "./services/notificationScheduler";
 
 const app = express();
 
@@ -45,9 +47,12 @@ app.use(habitsRouter);
 app.use(calendarRouter);
 app.use(notesRouter);
 app.use(userRouter);
+app.use(notificationRouter);
 
 const PORT = Number(process.env.PORT) || 3333;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+startNotificationScheduler();
