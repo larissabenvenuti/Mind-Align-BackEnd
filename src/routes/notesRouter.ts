@@ -3,6 +3,37 @@ import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+const MAX_NOTE_CHARACTERS = 1000;
+
+function getPlainText(content: string): string {
+  return content
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:p|h[1-6])\s*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(
+      /&(?:amp|lt|gt|quot|apos|nbsp);|&#(?:\d+|x[\da-f]+);/gi,
+      (entity) => {
+        const namedEntities: Record<string, string> = {
+          "&amp;": "&",
+          "&lt;": "<",
+          "&gt;": ">",
+          "&quot;": '"',
+          "&apos;": "'",
+          "&nbsp;": " ",
+        };
+        const namedValue = namedEntities[entity.toLowerCase()];
+        if (namedValue !== undefined) return namedValue;
+
+        const codePoint = entity.startsWith("&#x")
+          ? Number.parseInt(entity.slice(3, -1), 16)
+          : Number.parseInt(entity.slice(2, -1), 10);
+        return codePoint <= 0x10ffff
+          ? String.fromCodePoint(codePoint)
+          : entity;
+      },
+    )
+    .replace(/\n$/, "");
+}
 
 router.get(
   "/api/notes",
@@ -30,13 +61,25 @@ router.post(
       const userId = req.userId!;
       const { content } = req.body;
 
-      if (!content || typeof content !== "string" || !content.trim()) {
+      if (!content || typeof content !== "string") {
         return res.status(400).json({ error: "Conteúdo da nota obrigatório" });
+      }
+
+      const plainText = getPlainText(content);
+
+      if (!plainText.trim()) {
+        return res.status(400).json({ error: "Conteúdo da nota obrigatório" });
+      }
+
+      if (plainText.length > MAX_NOTE_CHARACTERS) {
+        return res.status(400).json({
+          error: `A nota pode ter no máximo ${MAX_NOTE_CHARACTERS} caracteres`,
+        });
       }
 
       const note = await prisma.note.create({
         data: {
-          content: content.trim().slice(0, 500),
+          content: content.trim(),
           userId,
         },
       });

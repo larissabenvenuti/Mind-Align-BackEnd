@@ -3,8 +3,10 @@ import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import { meetsPasswordPolicy } from "../lib/passwordPolicy";
 
 const router = Router();
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -69,7 +71,14 @@ router.post(
         password,
       } = req.body;
 
-      if (!email || !password) {
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        typeof email !== "string" ||
+        !email.trim() ||
+        typeof password !== "string" ||
+        !password
+      ) {
         return res
           .status(400)
           .json({
@@ -77,8 +86,22 @@ router.post(
           });
       }
 
-      const normalizedEmail =
-        String(email).trim().toLowerCase();
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({
+          error: "Formato de e-mail inválido",
+        });
+      }
+
+      if (!meetsPasswordPolicy(password)) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "A senha deve ter no mínimo 8 caracteres, letra maiúscula, letra minúscula, número e caractere especial",
+          });
+      }
 
       const exists =
         await prisma.user.findUnique({
@@ -140,7 +163,7 @@ router.post(
         password,
       } = req.body;
 
-      if (!email || !password) {
+      if (typeof email !== "string" || !email.trim() || !password) {
         return res
           .status(400)
           .json({
@@ -150,7 +173,13 @@ router.post(
       }
 
       const normalizedEmail =
-        String(email).trim().toLowerCase();
+        email.trim().toLowerCase();
+
+      if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({
+          error: "Formato de e-mail inválido",
+        });
+      }
 
       const user =
         await prisma.user.findUnique({

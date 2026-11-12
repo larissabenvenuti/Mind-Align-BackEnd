@@ -3,6 +3,12 @@ import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+const isValidRepeat = (repeat: unknown) =>
+  repeat === undefined ||
+  repeat === null ||
+  repeat === "" ||
+  repeat === "weekly" ||
+  repeat === "monthly";
 
 async function removePendingEventNotifications(userId: string, eventIds: string[]) {
   if (eventIds.length === 0) return;
@@ -62,6 +68,10 @@ router.post(
         return res.status(400).json({ error: "Título, início e término são obrigatórios" });
       }
 
+      if (!isValidRepeat(repeat)) {
+        return res.status(400).json({ error: "Repetição inválida" });
+      }
+
       const startDate = new Date(start);
       const endDate = new Date(end);
 
@@ -116,6 +126,10 @@ router.put(
 
       if (!title || !start || !end) {
         return res.status(400).json({ error: "Título, início e término são obrigatórios" });
+      }
+
+      if (!isValidRepeat(repeat)) {
+        return res.status(400).json({ error: "Repetição inválida" });
       }
 
       const startDate = new Date(start);

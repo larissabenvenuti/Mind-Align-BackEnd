@@ -2,10 +2,12 @@ import { Router, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import bcrypt from "bcryptjs";
+import { meetsPasswordPolicy } from "../lib/passwordPolicy";
 
 const router = Router();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_PROFILE_IMAGE_LENGTH = 5_000_000;
 
 router.get(
   "/api/user/profile",
@@ -89,7 +91,10 @@ router.put(
         });
       }
 
-      if (typeof image === "string" && image.length > 5_000_000) {
+      if (
+        typeof image === "string" &&
+        image.length > MAX_PROFILE_IMAGE_LENGTH
+      ) {
         return res.status(400).json({
           error: "Imagem muito grande",
         });
@@ -135,15 +140,21 @@ router.put(
       const userId = req.userId!;
       const { currentPassword, newPassword } = req.body;
 
-      if (!currentPassword || !newPassword) {
+      if (
+        typeof currentPassword !== "string" ||
+        !currentPassword ||
+        typeof newPassword !== "string" ||
+        !newPassword
+      ) {
         return res.status(400).json({
           error: "Preencha todas as senhas",
         });
       }
 
-      if (newPassword.length < 8) {
+      if (!meetsPasswordPolicy(newPassword)) {
         return res.status(400).json({
-          error: "A nova senha deve ter no mínimo 8 caracteres",
+          error:
+            "A nova senha deve ter no mínimo 8 caracteres, letra maiúscula, letra minúscula, número e caractere especial",
         });
       }
 
@@ -315,7 +326,7 @@ router.patch(
 
       if (
         typeof image === "string" &&
-        image.length > 5_000_000
+        image.length > MAX_PROFILE_IMAGE_LENGTH
       ) {
         return res.status(400).json({
           error: "Imagem muito grande",

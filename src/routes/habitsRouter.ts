@@ -4,6 +4,22 @@ import { requireAuth, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
+function formatHabit(habit: {
+  id: string;
+  name: string;
+  weekData: string;
+  currentStreak: number;
+  longestStreak: number;
+  lastResetDate: Date;
+  createdAt: Date;
+  userId: string;
+}) {
+  return {
+    ...habit,
+    weekData: JSON.parse(habit.weekData) as boolean[],
+  };
+}
+
 router.get(
   "/api/habits",
   requireAuth,
@@ -12,7 +28,6 @@ router.get(
       const userId = req.userId!;
       const habits = await prisma.habit.findMany({
         where: { userId },
-        select: { id: true, name: true, weekData: true, currentStreak: true, longestStreak: true, lastResetDate: true },
       });
 
       const now = new Date();
@@ -33,16 +48,10 @@ router.get(
               lastResetDate: new Date(),
             }
           });
-          return {
-            ...resetHabit,
-            weekData: JSON.parse(resetHabit.weekData)
-          };
+          return formatHabit(resetHabit);
         }
         
-        return {
-          ...h,
-          weekData: JSON.parse(h.weekData)
-        };
+        return formatHabit(h);
       }));
 
       res.json(processedHabits);
@@ -72,13 +81,7 @@ router.post(
         },
       });
 
-      res.status(201).json({
-        id: habit.id,
-        name: habit.name,
-        currentStreak: habit.currentStreak,
-        longestStreak: habit.longestStreak,
-        weekData: JSON.parse(habit.weekData),
-      });
+      res.status(201).json(formatHabit(habit));
     } catch (error) {
       res.status(500).json({ error: "Erro ao criar hábito" });
     }
