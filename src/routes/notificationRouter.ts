@@ -7,7 +7,7 @@ const router = Router();
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:suporte-mindalign@gmail.com",
+    process.env.VAPID_SUBJECT || "mailto:larissabenvenutia@gmail.com",
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY,
   );

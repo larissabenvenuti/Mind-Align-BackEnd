@@ -6,7 +6,7 @@ const publicVapidKey = process.env.VAPID_PUBLIC_KEY!;
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY!;
 
 webPush.setVapidDetails(
-  process.env.VAPID_SUBJECT || "mailto:suporte@mindalign.com",
+  process.env.VAPID_SUBJECT || "mailto:larissabenvenutia@gmail.com",
   publicVapidKey,
   privateVapidKey,
 );
